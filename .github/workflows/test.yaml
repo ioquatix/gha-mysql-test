@@ -1,0 +1,38 @@
+name: test
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+    runs-on: ubuntu-latest
+
+    services:
+      mariadb:
+        image: mariadb
+        ports:
+          - 3306:3306
+        env:
+          MARIADB_USER: test
+          MARIADB_PASSWORD: test
+          MARIADB_DATABASE: test
+          MARIADB_ROOT_PASSWORD: test
+        options: >-
+          --health-cmd "healthcheck.sh --connect --innodb_initialized"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 20
+
+    env:
+      CI: true
+      RAILS_ENV: test
+
+    steps:
+    - name: Install dependencies including MySQL
+      run: |
+        sudo apt-get update -qq
+        sudo apt install -y gnupg2 libyaml-dev wget mysql-client libmysqlclient-dev
+    - run: mysql -u test -ptest -h 127.0.0.1 -e "CREATE DATABASE IF NOT EXISTS test;"
